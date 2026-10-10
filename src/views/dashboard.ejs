@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title><%= title %></title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" />
+    <link rel="stylesheet" href="/css/styles.css" />
+  </head>
+  <body>
+    <nav>
+      <div class="nav-wrapper">
+        <div class="container">
+          <a href="/dashboard" class="brand-logo">Dashboard</a>
+          <ul id="nav-mobile" class="right hide-on-med-and-down">
+            <li><a href="/profile">Mi Perfil</a></li>
+            <li><button id="logoutButton" class="btn-flat white-text">Cerrar sesión</button></li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <div class="container">
+      <h4 class="page-title">Bienvenido, <span id="userName">usuario</span></h4>
+
+      <div class="row" style="margin-top: 24px;">
+        <div class="col s12 m4">
+          <div class="dashboard-stat">
+            <h6>Tu cuenta</h6>
+            <p id="accountInfo">Cargando...</p>
+          </div>
+        </div>
+        <div class="col s12 m4">
+          <div class="dashboard-stat">
+            <h6>Tu información</h6>
+            <p id="infoSummary">Cargando...</p>
+          </div>
+        </div>
+        <div class="col s12 m4">
+          <div class="dashboard-stat">
+            <h6>Tu rol</h6>
+            <p id="roleInfo">Cargando...</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="card-panel">
+        <h5>Acceso rápido</h5>
+        <div class="row">
+          <div class="col s12 m6">
+            <a href="/profile" class="btn-large waves-effect waves-light">Ir a Mi Perfil</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <script src="/js/auth.js"></script>
+    <script>
+      (async function () {
+        const token = await requireAuth();
+        if (!token) return;
+
+        const roles = getRolesFromToken(token);
+        if (roles.includes('admin')) {
+          document.getElementById('logoutButton').addEventListener('click', () => {
+            clearSession();
+            window.location.href = '/signIn';
+          });
+        }
+
+        try {
+          const response = await fetch('/api/users/me', {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+
+          if (response.status === 401) {
+            clearSession();
+            window.location.href = '/signIn';
+            return;
+          }
+
+          if (response.status === 403) {
+            window.location.href = '/403';
+            return;
+          }
+
+          const user = await response.json();
+          document.getElementById('userName').textContent = user.name || 'usuario';
+          document.getElementById('accountInfo').textContent = `${user.email} | ${user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'Sin fecha'}`;
+          document.getElementById('infoSummary').textContent = `${user.name} ${user.lastName} | Edad: ${user.age ?? 'N/A'}`;
+          document.getElementById('roleInfo').textContent = (user.roles || []).join(', ') || 'user';
+        } catch (error) {
+          console.error(error);
+          window.location.href = '/signIn';
+        }
+
+        document.getElementById('logoutButton').addEventListener('click', () => {
+          clearSession();
+          window.location.href = '/signIn';
+        });
+      })();
+    </script>
+  </body>
+</html>

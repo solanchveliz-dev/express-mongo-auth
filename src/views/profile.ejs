@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title><%= title %></title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" />
+    <link rel="stylesheet" href="/css/styles.css" />
+  </head>
+  <body>
+    <nav>
+      <div class="nav-wrapper">
+        <div class="container">
+          <a href="/dashboard" class="brand-logo">Mi cuenta</a>
+          <ul id="nav-mobile" class="right hide-on-med-and-down">
+            <li><a href="/dashboard">Dashboard</a></li>
+            <li><button id="logoutButton" class="btn-flat white-text">Cerrar sesión</button></li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <div class="container" style="padding-top: 30px;">
+      <div class="card-panel">
+        <div class="profile-avatar" id="avatar">U</div>
+        <h4 class="center">Perfil</h4>
+
+        <form id="profileForm">
+          <div class="row">
+            <div class="input-field col s12 m6">
+              <input id="name" name="name" type="text" required />
+              <label for="name">Nombre</label>
+            </div>
+            <div class="input-field col s12 m6">
+              <input id="lastName" name="lastName" type="text" required />
+              <label for="lastName">Apellidos</label>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="input-field col s12 m6">
+              <input id="email" name="email" type="email" required />
+              <label for="email">Correo</label>
+            </div>
+            <div class="input-field col s12 m6">
+              <input id="phoneNumber" name="phoneNumber" type="text" required />
+              <label for="phoneNumber">Telefono</label>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="input-field col s12 m4">
+              <input id="birthdate" name="birthdate" type="date" required />
+              <label for="birthdate">Fecha de nacimiento</label>
+            </div>
+            <div class="input-field col s12 m4">
+              <input id="url_profile" name="url_profile" type="text" />
+              <label for="url_profile">URL de perfil</label>
+            </div>
+            <div class="input-field col s12 m4">
+              <input id="adress" name="adress" type="text" />
+              <label for="adress">Dirección</label>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="input-field col s12 m6">
+              <input id="newPassword" name="password" type="password" />
+              <label for="newPassword">Nueva contraseña (opcional)</label>
+            </div>
+          </div>
+
+          <div class="center">
+            <button class="btn waves-effect waves-light" type="submit">Guardar cambios</button>
+          </div>
+          <div id="message" class="error-message center"></div>
+        </form>
+      </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <script src="/js/auth.js"></script>
+    <script>
+      (async function () {
+        const token = await requireAuth();
+        if (!token) return;
+
+        async function loadProfile() {
+          const response = await fetch('/api/users/me', {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+
+          if (response.status === 401) {
+            clearSession();
+            window.location.href = '/signIn';
+            return;
+          }
+
+          const user = await response.json();
+          document.getElementById('name').value = user.name || '';
+          document.getElementById('lastName').value = user.lastName || '';
+          document.getElementById('email').value = user.email || '';
+          document.getElementById('phoneNumber').value = user.phoneNumber || '';
+          document.getElementById('birthdate').value = user.birthdate ? new Date(user.birthdate).toISOString().slice(0, 10) : '';
+          document.getElementById('url_profile').value = user.url_profile || '';
+          document.getElementById('adress').value = user.adress || '';
+          document.getElementById('avatar').textContent = (user.name || 'U').charAt(0).toUpperCase();
+
+          const labels = document.querySelectorAll('label');
+          labels.forEach((label) => M.updateTextFields());
+        }
+
+        document.getElementById('profileForm').addEventListener('submit', async (event) => {
+          event.preventDefault();
+          const payload = {
+            name: document.getElementById('name').value.trim(),
+            lastName: document.getElementById('lastName').value.trim(),
+            email: document.getElementById('email').value.trim(),
+            phoneNumber: document.getElementById('phoneNumber').value.trim(),
+            birthdate: document.getElementById('birthdate').value,
+            url_profile: document.getElementById('url_profile').value.trim(),
+            adress: document.getElementById('adress').value.trim()
+          };
+
+          if (document.getElementById('newPassword').value) {
+            payload.password = document.getElementById('newPassword').value;
+          }
+
+          const message = document.getElementById('message');
+          try {
+            const response = await fetch('/api/users/me', {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+              body: JSON.stringify(payload)
+            });
+
+            const data = await response.json();
+            if (!response.ok) {
+              message.textContent = data.message || 'No se pudo guardar el perfil.';
+              return;
+            }
+
+            message.textContent = 'Perfil actualizado correctamente.';
+            await loadProfile();
+          } catch (error) {
+            message.textContent = 'Error al guardar el perfil.';
+          }
+        });
+
+        document.getElementById('logoutButton').addEventListener('click', () => {
+          clearSession();
+          window.location.href = '/signIn';
+        });
+
+        await loadProfile();
+      })();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Detalle de usuario</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" />
+  </head>
+  <body>
+    <div class="container">
+      <h4>Detalle de usuario</h4>
+      <div class="card-panel">
+        <p><strong>Nombre:</strong> <%= user.name %></p>
+        <p><strong>Apellidos:</strong> <%= user.lastName %></p>
+        <p><strong>Email:</strong> <%= user.email %></p>
+        <p><strong>Telefono:</strong> <%= user.phoneNumber %></p>
+        <p><strong>Fecha de nacimiento:</strong> <%= user.birthdate %></p>
+        <p><strong>Edad:</strong> <%= user.age %></p>
+        <p><strong>URL de perfil:</strong> <%= user.url_profile || 'N/A' %></p>
+        <p><strong>Dirección:</strong> <%= user.adress || 'N/A' %></p>
+        <p><strong>Roles:</strong> <%= user.roles.join(', ') %></p>
+        <p><strong>Fecha de registro:</strong> <%= user.createdAt %></p>
+      </div>
+    </div>
+  </body>
+</html>
