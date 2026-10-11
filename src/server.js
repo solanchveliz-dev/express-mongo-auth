@@ -47,6 +47,10 @@ app.get('/health', (req, res) => {
     });
 });
 
+app.use((req, res) => {
+    return res.status(404).render('404', { title: 'Página no encontrada' });
+});
+
 // Manejador global de errores
 app.use((err, req, res, next) => {
     console.error(err);

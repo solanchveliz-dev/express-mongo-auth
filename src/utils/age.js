@@ -15,4 +15,4 @@ function calculateAge(birthdate) {
   return age;
 }
 
-module.exports = { calculateAge };
+export { calculateAge };
