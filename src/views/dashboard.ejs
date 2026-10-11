@@ -119,7 +119,27 @@
         const initials = ((user.name || 'U') + ' ' + (user.lastName || '')).trim() || 'U';
         const displayName = `${user.name || ''} ${user.lastName || ''}`.trim() || 'Usuario';
         const birthDate = user.birthdate ? new Date(user.birthdate) : null;
-        const age = birthDate ? new Date(Date.now() - birthDate.getTime()).getUTCFullYear() - 1970 : 'N/A';
+        const validBirthDate = birthDate && !Number.isNaN(birthDate.getTime()) ? birthDate : null;
+        let age = null;
+
+        if (validBirthDate) {
+          const today = new Date();
+          age = today.getFullYear() - validBirthDate.getUTCFullYear();
+          if (
+            today.getMonth() < validBirthDate.getUTCMonth() ||
+            (today.getMonth() === validBirthDate.getUTCMonth() && today.getDate() < validBirthDate.getUTCDate())
+          ) {
+            age -= 1;
+          }
+          if (age < 0) age = null;
+        }
+
+        const formatDate = (value) => new Intl.DateTimeFormat('es', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric',
+          timeZone: 'UTC'
+        }).format(value);
 
         document.getElementById('userName').textContent = user.name || 'Usuario';
         document.getElementById('sidebarName').textContent = displayName;
@@ -128,11 +148,11 @@
         document.getElementById('profileAvatar').textContent = initials.charAt(0).toUpperCase();
         document.getElementById('profileEmail').textContent = user.email || 'Sin email';
         document.getElementById('roleInfo').textContent = (user.roles || ['user']).join(', ');
-        document.getElementById('ageInfo').textContent = age === 'N/A' ? 'N/A' : `${age} años`;
-        document.getElementById('createdInfo').textContent = user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'Sin fecha';
+        document.getElementById('ageInfo').textContent = age === null ? 'No registrada' : `${age} años`;
+        document.getElementById('createdInfo').textContent = user.createdAt ? new Date(user.createdAt).toLocaleDateString('es') : 'Sin fecha';
         document.getElementById('fullName').value = displayName;
         document.getElementById('phoneField').value = user.phoneNumber || 'Sin teléfono';
-        document.getElementById('birthField').value = birthDate ? birthDate.toLocaleDateString() : 'Sin fecha';
+        document.getElementById('birthField').value = validBirthDate ? formatDate(validBirthDate) : 'Sin fecha';
 
         if (isAdmin) {
           const adminLink = document.createElement('a');

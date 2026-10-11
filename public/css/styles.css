@@ -638,7 +638,7 @@ footer {
 
 .dashboard-shell {
   display: grid;
-  grid-template-columns: 270px minmax(0, 1fr);
+  grid-template-columns: minmax(220px, 270px) minmax(0, 1fr);
   min-height: 100vh;
   background: #f8fafc;
 }
@@ -691,6 +691,7 @@ footer {
 }
 
 .content-area {
+  min-width: 0;
   padding: 32px 26px 52px;
 }
 
@@ -718,7 +719,7 @@ footer {
 
 .summary-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
   gap: 16px;
   margin: 24px 0;
 }
@@ -747,6 +748,7 @@ footer {
 }
 
 .card-panel {
+  min-width: 0;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
@@ -886,6 +888,14 @@ footer {
   border: 1px solid rgba(79,70,229,0.12);
 }
 
+.profile-header > div:last-child {
+  min-width: 0;
+}
+
+.profile-header p {
+  overflow-wrap: anywhere;
+}
+
 .profile-avatar {
   width: 72px;
   height: 72px;
@@ -928,6 +938,7 @@ footer {
   .feature-grid, .demo-grid, .step-grid, .summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .hero-inner, .auth-layout, .dashboard-shell { grid-template-columns: 1fr; }
   .sidebar { padding-bottom: 12px; }
+  .content-area { min-width: 0; }
 }
 
 @media (max-width: 640px) {

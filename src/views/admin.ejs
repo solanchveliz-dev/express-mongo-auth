@@ -79,7 +79,7 @@
     </main>
 
     <div id="userModal" class="modal-backdrop" aria-hidden="true">
-      <div class="modal-card" role="dialog" aria-modal="true">
+      <div class="modal-card" role="dialog" aria-modal="true" tabindex="-1">
         <div class="modal-header">
           <h3 id="modalTitle" style="margin: 0; font-size: 1.4rem;">Usuario</h3>
           <button type="button" class="close-modal" data-close-modal="userModal">×</button>
@@ -93,22 +93,30 @@
       const apiUrl = '/api/users';
       const token = sessionStorage.getItem('token');
       const state = { users: [] };
+      let modalTrigger = null;
 
       function showModal(content, title) {
+        const modal = document.getElementById('userModal');
+        modalTrigger = document.activeElement;
         document.getElementById('modalContent').innerHTML = content;
         document.getElementById('modalTitle').textContent = title;
-        document.getElementById('userModal').classList.add('open');
+        modal.setAttribute('aria-hidden', 'false');
+        modal.classList.add('open');
+        modal.querySelector('[role="dialog"]').focus();
       }
 
       function closeModal() {
-        document.getElementById('userModal').classList.remove('open');
+        const modal = document.getElementById('userModal');
+        modal.classList.remove('open');
+        modal.setAttribute('aria-hidden', 'true');
+        modalTrigger?.focus();
       }
 
-      document.querySelectorAll('[data-close-modal]').forEach((button) => {
-        button.addEventListener('click', closeModal);
-      });
-
       document.getElementById('userModal').addEventListener('click', (event) => {
+        if (event.target.closest('[data-close-modal]')) {
+          closeModal();
+          return;
+        }
         if (event.target.id === 'userModal') closeModal();
       });
 

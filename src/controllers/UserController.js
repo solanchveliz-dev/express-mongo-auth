@@ -21,7 +21,13 @@ class UserController {
 
     async updateMe(req, res, next) {
         try {
-            const updated = await userService.updateUser(req.userId, req.body || {});
+            const editableFields = ['name', 'lastName', 'email', 'phoneNumber', 'birthdate', 'url_profile', 'adress', 'password'];
+            const payload = Object.fromEntries(
+                editableFields
+                    .filter((field) => Object.hasOwn(req.body || {}, field))
+                    .map((field) => [field, req.body[field]])
+            );
+            const updated = await userService.updateUser(req.userId, payload);
             return res.status(200).json(updated);
         } catch (err) {
             return res.status(err.status || 500).json({ message: err.message || 'No se pudo actualizar el perfil.' });

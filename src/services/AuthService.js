@@ -1,16 +1,19 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import mongoose from 'mongoose';
 import userRepository from '../repositories/UserRepository.js';
 import roleRepository from '../repositories/RoleRepository.js';
 
 class AuthService {
-    async signUp({ email, password, name, roles = ['user'] }) {
+    async signUp({ email, password, name, lastName, phoneNumber, birthdate, url_profile, adress }) {
         const existing = await userRepository.findByEmail(email);
         if (existing) {
             const err = new Error('El email ya se encuentra en uso');
             err.status = 400;
             throw err;
         }
+
+        const roles = ['user'];
 
         // lógica para encriptar el password
         const saltRounds = parseInt(process.env.BCRYPT_SALT_ROUNDS ?? '10', 10);
@@ -21,15 +24,30 @@ class AuthService {
         for (const r of roles) {
             let roleDoc = await roleRepository.findByName(r);
             if (!roleDoc) roleDoc = await roleRepository.create({ name: r });
-            roleDocs.push(roleDoc._id);
+            roleDocs.push(global.isMemoryMode || mongoose.connection.readyState !== 1 ? r : roleDoc._id);
         }
 
-        const user = await userRepository.create({ email, password: hashed, name, roles: roleDocs });
+        const user = await userRepository.create({
+            email,
+            password: hashed,
+            name,
+            lastName,
+            phoneNumber,
+            birthdate,
+            url_profile,
+            adress,
+            roles: roleDocs
+        });
 
         return {
             id: user._id,
             email: user.email,
-            name: user.name
+            name: user.name,
+            lastName: user.lastName,
+            phoneNumber: user.phoneNumber,
+            birthdate: user.birthdate,
+            url_profile: user.url_profile,
+            adress: user.adress
         };
     }
 
@@ -51,7 +69,9 @@ class AuthService {
         const token = jwt.sign(
             {
                 sub: user._id,
-                roles: user.roles.map(r => r.name)
+                roles: (user.roles || [])
+                    .map((role) => typeof role === 'string' ? role : role?.name)
+                    .filter(Boolean)
             },
             process.env.JWT_SECRET,
             {
