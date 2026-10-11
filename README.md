@@ -60,3 +60,4 @@ La app escucha en `http://localhost:3000`.
 - La ruta web `/admin` usa JavaScript del cliente para redirigir a `/403` cuando el usuario no tiene permiso.
 - El proyecto mantiene el contrato de autenticación y middleware actual sin alterar la lógica de autorización original.
 - No se modifica `.env` ni la configuración de despliegue para la validación de prueba.
+## CI/CD verificado con GitHub Actions + Render Deploy Hook.
