@@ -5,4 +5,4 @@ const inMemoryDb = {
   roleCounter: 1
 };
 
-module.exports = inMemoryDb;
+export default inMemoryDb;

@@ -1,6 +1,10 @@
-const express = require('express');
+import express from 'express';
 
 const router = express.Router();
+
+router.get('/', (req, res) => {
+  res.render('landing', { title: 'Express Auth | Seguridad JWT' });
+});
 
 router.get('/signIn', (req, res) => {
   res.render('signin', { title: 'Iniciar sesión' });
@@ -30,4 +34,4 @@ router.get('/404', (req, res) => {
   res.render('404', { title: 'Página no encontrada' });
 });
 
-module.exports = router;
+export default router;

@@ -1,25 +1,35 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Detalle de usuario</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" />
+    <title>Detalle del usuario</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/css/styles.css" />
   </head>
-  <body>
-    <div class="container">
-      <h4>Detalle de usuario</h4>
-      <div class="card-panel">
-        <p><strong>Nombre:</strong> <%= user.name %></p>
-        <p><strong>Apellidos:</strong> <%= user.lastName %></p>
-        <p><strong>Email:</strong> <%= user.email %></p>
-        <p><strong>Telefono:</strong> <%= user.phoneNumber %></p>
-        <p><strong>Fecha de nacimiento:</strong> <%= user.birthdate %></p>
-        <p><strong>Edad:</strong> <%= user.age %></p>
-        <p><strong>URL de perfil:</strong> <%= user.url_profile || 'N/A' %></p>
-        <p><strong>Dirección:</strong> <%= user.adress || 'N/A' %></p>
-        <p><strong>Roles:</strong> <%= user.roles.join(', ') %></p>
-        <p><strong>Fecha de registro:</strong> <%= user.createdAt %></p>
+  <body class="exception-shell">
+    <div class="card-panel" style="width: min(720px, 100%);">
+      <h1 style="margin-top: 0;">Detalle del usuario</h1>
+      <div class="field-row">
+        <div class="input-wrap"><label>Nombre</label><input value="<%= user.name || '' %>" readonly /></div>
+        <div class="input-wrap"><label>Apellidos</label><input value="<%= user.lastName || '' %>" readonly /></div>
+      </div>
+      <div class="field-row">
+        <div class="input-wrap"><label>Email</label><input value="<%= user.email || '' %>" readonly /></div>
+        <div class="input-wrap"><label>Teléfono</label><input value="<%= user.phoneNumber || '' %>" readonly /></div>
+      </div>
+      <div class="field-row">
+        <div class="input-wrap"><label>Fecha de nacimiento</label><input value="<%= user.birthdate || '' %>" readonly /></div>
+        <div class="input-wrap"><label>Roles</label><input value="<%= Array.isArray(user.roles) ? user.roles.join(', ') : '' %>" readonly /></div>
+      </div>
+      <div class="field-row">
+        <div class="input-wrap"><label>Dirección</label><input value="<%= user.adress || '' %>" readonly /></div>
+        <div class="input-wrap"><label>URL perfil</label><input value="<%= user.url_profile || '' %>" readonly /></div>
+      </div>
+      <div style="margin-top: 16px; display: flex; gap: 12px; flex-wrap: wrap;">
+        <a class="primary-btn" href="/admin">Volver</a>
       </div>
     </div>
   </body>

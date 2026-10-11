@@ -4,71 +4,124 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title><%= title %></title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="/css/styles.css" />
   </head>
-  <body>
-    <nav>
-      <div class="nav-wrapper">
-        <div class="container">
-          <a href="/signIn" class="brand-logo">Auth Lab</a>
+  <body class="auth-shell">
+    <div class="auth-layout">
+      <aside class="auth-brand-panel">
+        <div>
+          <a href="/" class="brand" aria-label="Volver a la página de inicio">
+            <span class="brand-mark">E</span>
+            <span>Express Auth</span>
+          </a>
+
+          <div class="auth-bullets">
+            <div class="auth-bullet"><span class="auth-check">✓</span> <span>Registro con validación de contraseña fuerte.</span></div>
+            <div class="auth-bullet"><span class="auth-check">✓</span> <span>Perfiles con información personal y contacto.</span></div>
+            <div class="auth-bullet"><span class="auth-check">✓</span> <span>Acceso directo a dashboards según tu rol.</span></div>
+          </div>
         </div>
-      </div>
-    </nav>
 
-    <div class="container">
-      <div class="card-panel form-card">
-        <h4 class="center page-title">Crear cuenta</h4>
-        <form id="signupForm">
-          <div class="row">
-            <div class="input-field col s12 m6">
-              <input id="name" name="name" type="text" required />
-              <label for="name">Nombre</label>
+        <div>
+          <p style="margin: 0; opacity: 0.84;">Protección segura • JWT • MongoDB Atlas</p>
+        </div>
+      </aside>
+
+      <main class="auth-form-panel">
+        <div class="form-card">
+          <div class="form-header">
+            <h1>Crear cuenta</h1>
+            <p>Completa tus datos y crea una cuenta segura en segundos.</p>
+          </div>
+
+          <form id="signupForm" class="form-grid" novalidate>
+            <div class="field-row">
+              <div class="input-wrap">
+                <label for="name">Nombre</label>
+                <input id="name" name="name" type="text" autocomplete="given-name" required />
+              </div>
+              <div class="input-wrap">
+                <label for="lastName">Apellidos</label>
+                <input id="lastName" name="lastName" type="text" autocomplete="family-name" required />
+              </div>
             </div>
-            <div class="input-field col s12 m6">
-              <input id="lastName" name="lastName" type="text" required />
-              <label for="lastName">Apellidos</label>
+
+            <div class="field-row">
+              <div class="input-wrap">
+                <label for="phoneNumber">Teléfono</label>
+                <input id="phoneNumber" name="phoneNumber" type="text" autocomplete="tel" required />
+              </div>
+              <div class="input-wrap">
+                <label for="birthdate">Fecha de nacimiento</label>
+                <input id="birthdate" name="birthdate" type="date" required />
+              </div>
             </div>
-          </div>
 
-          <div class="row">
-            <div class="input-field col s12 m6">
-              <input id="phoneNumber" name="phoneNumber" type="text" required />
-              <label for="phoneNumber">Teléfono</label>
+            <div class="input-wrap">
+              <label for="email">Correo electrónico</label>
+              <input id="email" name="email" type="email" autocomplete="email" required />
             </div>
-            <div class="input-field col s12 m6">
-              <input id="birthdate" name="birthdate" type="date" required />
-              <label for="birthdate">Fecha de nacimiento</label>
+
+            <div class="input-wrap password">
+              <label for="password">Contraseña</label>
+              <input id="password" name="password" type="password" autocomplete="new-password" required />
+              <button type="button" class="show-password" data-toggle-password="password">Mostrar</button>
             </div>
-          </div>
 
-          <div class="input-field">
-            <input id="email" name="email" type="email" required />
-            <label for="email">Correo electrónico</label>
-          </div>
+            <ul class="password-checklist" id="passwordChecklist">
+              <li class="invalid">• Mínimo 8 caracteres</li>
+              <li class="invalid">• Al menos una mayúscula</li>
+              <li class="invalid">• Al menos un número</li>
+              <li class="invalid">• Incluye un símbolo (# $ % & * @)</li>
+            </ul>
 
-          <div class="input-field">
-            <input id="password" name="password" type="password" required />
-            <label for="password">Contraseña</label>
-          </div>
+            <button type="submit" class="primary-btn form-action" id="signupButton">Registrarme</button>
+            <div id="message" class="form-message error"></div>
+          </form>
 
-          <div class="center">
-            <button class="btn waves-effect waves-light" type="submit">Registrarme</button>
-          </div>
-
-          <p class="center">
-            ¿Ya tienes cuenta?
-            <a href="/signIn">Inicia sesión</a>
-          </p>
-          <div id="message" class="error-message center"></div>
-        </form>
-      </div>
+          <p class="auth-subtle">¿Ya tienes cuenta? <a href="/signIn">Iniciar sesión</a></p>
+        </div>
+      </main>
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <script src="/js/auth.js"></script>
     <script>
       const form = document.getElementById('signupForm');
       const message = document.getElementById('message');
+      const button = document.getElementById('signupButton');
+      const passwordInput = document.getElementById('password');
+      const checklistItems = [...document.querySelectorAll('#passwordChecklist li')];
+
+      function validatePasswordStrength(value) {
+        const checks = [
+          value.length >= 8,
+          /[A-Z]/.test(value),
+          /\d/.test(value),
+          /[#\$%&*@]/.test(value)
+        ];
+
+        checklistItems.forEach((item, index) => {
+          const valid = checks[index];
+          item.classList.toggle('valid', valid);
+          item.classList.toggle('invalid', !valid);
+        });
+
+        return checks.every(Boolean);
+      }
+
+      passwordInput.addEventListener('input', () => validatePasswordStrength(passwordInput.value));
+
+      document.querySelectorAll('[data-toggle-password]').forEach((toggle) => {
+        toggle.addEventListener('click', () => {
+          const input = document.getElementById(toggle.dataset.togglePassword);
+          const visible = input.type === 'text';
+          input.type = visible ? 'password' : 'text';
+          toggle.textContent = visible ? 'Mostrar' : 'Ocultar';
+        });
+      });
 
       form.addEventListener('submit', async (event) => {
         event.preventDefault();
@@ -79,13 +132,24 @@
           phoneNumber: document.getElementById('phoneNumber').value.trim(),
           birthdate: document.getElementById('birthdate').value,
           email: document.getElementById('email').value.trim(),
-          password: document.getElementById('password').value
+          password: passwordInput.value
         };
 
         if (!payload.name || !payload.lastName || !payload.phoneNumber || !payload.birthdate || !payload.email || !payload.password) {
           message.textContent = 'Completa todos los campos obligatorios.';
+          message.className = 'form-message error';
           return;
         }
+
+        if (!validatePasswordStrength(payload.password)) {
+          message.textContent = 'La contraseña no cumple los requisitos mínimos.';
+          message.className = 'form-message error';
+          return;
+        }
+
+        button.disabled = true;
+        button.textContent = 'Creando cuenta...';
+        message.textContent = '';
 
         try {
           const response = await fetch('/api/auth/signUp', {
@@ -98,14 +162,22 @@
 
           if (!response.ok) {
             message.textContent = data.message || 'No se pudo completar el registro.';
+            message.className = 'form-message error';
             return;
           }
 
-          window.location.href = '/signIn';
+          message.textContent = 'Cuenta creada correctamente. Redirigiendo...';
+          message.className = 'form-message success';
+          setTimeout(() => window.location.href = '/signIn', 1200);
         } catch (error) {
           message.textContent = 'Error de conexión con el servidor.';
+          message.className = 'form-message error';
+        } finally {
+          button.disabled = false;
+          button.textContent = 'Registrarme';
         }
       });
     </script>
   </body>
 </html>
+

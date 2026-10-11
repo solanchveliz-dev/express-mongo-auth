@@ -10,5 +10,11 @@ router.get('/', authenticate, authorize(['admin']), UserController.getAll);
 
 // GET /api/users/me (cualquier usuario autenticado)
 router.get('/me', authenticate, authorize([]), UserController.getMe);
+router.put('/me', authenticate, authorize([]), UserController.updateMe);
+
+// Gestión administrativa
+router.get('/:id', authenticate, authorize(['admin']), UserController.getById);
+router.put('/:id', authenticate, authorize(['admin']), UserController.updateById);
+router.delete('/:id', authenticate, authorize(['admin']), UserController.deleteById);
 
 export default router;

@@ -1,19 +1,22 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title><%= title %></title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="/css/styles.css" />
   </head>
-  <body>
-    <div class="container center" style="padding-top: 80px;">
-      <div class="card-panel">
-        <h1 class="deep-orange-text">403</h1>
-        <h4>Acceso denegado</h4>
-        <p>No tienes permisos suficientes para acceder a esta página.</p>
-        <a class="btn" href="/dashboard">Volver al dashboard</a>
+  <body class="exception-shell">
+    <div class="exception-card">
+      <div class="exception-title" style="color: var(--error);">403</div>
+      <h1 style="margin: 0 0 12px; font-size: 2.3rem;">Acceso denegado</h1>
+      <p>No tienes permisos suficientes para acceder a esta página. Verifica tu rol o inicia sesión con otra cuenta.</p>
+      <div style="display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; margin-top: 22px;">
+        <a class="primary-btn" href="/dashboard">Ir al dashboard</a>
+        <a class="secondary-btn" href="/signIn">Iniciar sesión</a>
       </div>
     </div>
   </body>

@@ -1,43 +1,74 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title><%= title %></title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="/css/styles.css" />
   </head>
-  <body>
-    <nav>
-      <div class="nav-wrapper">
-        <div class="container">
-          <a href="/admin" class="brand-logo">Admin</a>
-          <ul id="nav-mobile" class="right hide-on-med-and-down">
-            <li><a href="/dashboard">Dashboard</a></li>
-            <li><button id="logoutButton" class="btn-flat white-text">Cerrar sesión</button></li>
-          </ul>
+  <body class="dashboard-shell">
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="avatar-badge" id="sidebarAvatar">A</div>
+        <div>
+          <strong id="sidebarName">Administrador</strong><br />
+          <small id="sidebarRole">admin</small>
         </div>
       </div>
-    </nav>
 
-    <div class="container" style="padding-top: 30px;">
-      <h4>Dashboard administrador</h4>
+      <nav class="side-nav" aria-label="Navegación lateral">
+        <a class="side-link" href="/dashboard"><span>Dashboard</span><span>→</span></a>
+        <a class="side-link active" href="/admin"><span>Administración</span><span>→</span></a>
+        <a class="side-link" href="/profile"><span>Perfil</span><span>→</span></a>
+      </nav>
+    </aside>
+
+    <main class="content-area">
+      <div class="top-panel">
+        <div>
+          <div class="page-kicker">Panel</div>
+          <h1 class="page-title">Gestión de usuarios</h1>
+        </div>
+        <button id="logoutButton" class="secondary-btn" type="button">Cerrar sesión</button>
+      </div>
+
+      <div class="summary-grid">
+        <article class="summary-card">
+          <span class="label">Usuarios</span>
+          <strong id="totalUsers">0</strong>
+        </article>
+        <article class="summary-card">
+          <span class="label">Admins</span>
+          <strong id="totalAdmins">0</strong>
+        </article>
+        <article class="summary-card">
+          <span class="label">Clientes</span>
+          <strong id="totalUsersRole">0</strong>
+        </article>
+        <article class="summary-card">
+          <span class="label">Estado</span>
+          <strong id="statusUsers">On</strong>
+        </article>
+      </div>
+
       <div class="card-panel">
-        <div class="table-wrapper">
-          <table class="striped highlight responsive-table">
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 16px;">
+          <h2 style="margin: 0; font-size: 1.35rem;">Usuarios registrados</h2>
+          <input id="searchInput" class="search-bar" type="search" placeholder="Buscar por nombre o correo" />
+        </div>
+
+        <div class="table-shell">
+          <table class="data-table">
             <thead>
               <tr>
-                <th>ID</th>
                 <th>Nombre</th>
-                <th>Apellidos</th>
                 <th>Email</th>
-                <th>Teléfono</th>
-                <th>Fecha nacimiento</th>
-                <th>Edad</th>
-                <th>Dirección</th>
-                <th>URL</th>
                 <th>Rol</th>
-                <th>Fecha registro</th>
+                <th>Teléfono</th>
+                <th>Fecha</th>
                 <th>Acciones</th>
               </tr>
             </thead>
@@ -45,101 +76,208 @@
           </table>
         </div>
       </div>
+    </main>
+
+    <div id="userModal" class="modal-backdrop" aria-hidden="true">
+      <div class="modal-card" role="dialog" aria-modal="true">
+        <div class="modal-header">
+          <h3 id="modalTitle" style="margin: 0; font-size: 1.4rem;">Usuario</h3>
+          <button type="button" class="close-modal" data-close-modal="userModal">×</button>
+        </div>
+        <div id="modalContent"></div>
+      </div>
     </div>
 
-    <div id="userDetailModal" class="modal">
-      <div class="modal-content">
-        <h4>Detalle de usuario</h4>
-        <div id="userDetailContent"></div>
-      </div>
-      <div class="modal-footer">
-        <a href="#" class="modal-close waves-effect waves-green btn-flat">Cerrar</a>
-      </div>
-    </div>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
     <script src="/js/auth.js"></script>
     <script>
-      (async function () {
-        const token = await requireAuth();
-        if (!token) return;
+      const apiUrl = '/api/users';
+      const token = sessionStorage.getItem('token');
+      const state = { users: [] };
 
-        const roles = getRolesFromToken(token);
-        if (!roles.includes('admin')) {
+      function showModal(content, title) {
+        document.getElementById('modalContent').innerHTML = content;
+        document.getElementById('modalTitle').textContent = title;
+        document.getElementById('userModal').classList.add('open');
+      }
+
+      function closeModal() {
+        document.getElementById('userModal').classList.remove('open');
+      }
+
+      document.querySelectorAll('[data-close-modal]').forEach((button) => {
+        button.addEventListener('click', closeModal);
+      });
+
+      document.getElementById('userModal').addEventListener('click', (event) => {
+        if (event.target.id === 'userModal') closeModal();
+      });
+
+      function getUserId(user) {
+        return user._id || user.id;
+      }
+
+      function renderTable(filteredUsers) {
+        const tbody = document.getElementById('usersTableBody');
+        if (!filteredUsers.length) {
+          tbody.innerHTML = '<tr><td colspan="6" class="empty-state">No se encontraron usuarios.</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = filteredUsers.map((user) => {
+          const roles = Array.isArray(user.roles) ? user.roles : ['user'];
+          const roleClass = roles.includes('admin') ? 'role-admin' : 'role-user';
+          const isOwnAdmin = String(getUserId(user)) === String(JSON.parse(atob(token.split('.')[1])).sub || '');
+          return `
+            <tr>
+              <td>${(user.name || '') + ' ' + (user.lastName || '')}</td>
+              <td>${user.email || ''}</td>
+              <td><span class="role-badge ${roleClass}">${roles.join(', ')}</span></td>
+              <td>${user.phoneNumber || ''}</td>
+              <td>${user.createdAt ? new Date(user.createdAt).toLocaleDateString() : '—'}</td>
+              <td>
+                <div class="table-actions">
+                  <button class="icon-btn" data-view-user="${getUserId(user)}">Ver</button>
+                  <button class="icon-btn warning" data-edit-user="${getUserId(user)}">Editar</button>
+                  <button class="icon-btn danger" data-delete-user="${getUserId(user)}" ${isOwnAdmin ? 'disabled' : ''}>Eliminar</button>
+                </div>
+              </td>
+            </tr>
+          `;
+        }).join('');
+
+        document.querySelectorAll('[data-view-user]').forEach((button) => {
+          button.addEventListener('click', async () => {
+            const user = state.users.find((item) => String(getUserId(item)) === String(button.dataset.viewUser));
+            if (!user) return;
+            showModal(`
+              <div class="form-grid">
+                <div class="field-row">
+                  <div class="input-wrap"><label>Nombre</label><input value="${user.name || ''}" readonly /></div>
+                  <div class="input-wrap"><label>Apellidos</label><input value="${user.lastName || ''}" readonly /></div>
+                </div>
+                <div class="field-row">
+                  <div class="input-wrap"><label>Email</label><input value="${user.email || ''}" readonly /></div>
+                  <div class="input-wrap"><label>Teléfono</label><input value="${user.phoneNumber || ''}" readonly /></div>
+                </div>
+                <div class="field-row">
+                  <div class="input-wrap"><label>Fecha de nacimiento</label><input value="${user.birthdate ? new Date(user.birthdate).toLocaleDateString() : ''}" readonly /></div>
+                  <div class="input-wrap"><label>Rol</label><input value="${(user.roles || ['user']).join(', ')}" readonly /></div>
+                </div>
+              </div>
+            `, 'Detalle del usuario');
+          });
+        });
+
+        document.querySelectorAll('[data-edit-user]').forEach((button) => {
+          button.addEventListener('click', async () => {
+            const user = state.users.find((item) => String(getUserId(item)) === String(button.dataset.editUser));
+            if (!user) return;
+            showModal(`
+              <form id="editUserForm" class="form-grid">
+                <div class="field-row">
+                  <div class="input-wrap"><label>Nombre</label><input id="editName" value="${user.name || ''}" /></div>
+                  <div class="input-wrap"><label>Apellidos</label><input id="editLastName" value="${user.lastName || ''}" /></div>
+                </div>
+                <div class="field-row">
+                  <div class="input-wrap"><label>Correo</label><input id="editEmail" value="${user.email || ''}" /></div>
+                  <div class="input-wrap"><label>Teléfono</label><input id="editPhoneNumber" value="${user.phoneNumber || ''}" /></div>
+                </div>
+                <div class="field-row">
+                  <div class="input-wrap"><label>Fecha nacimiento</label><input id="editBirthdate" type="date" value="${user.birthdate ? new Date(user.birthdate).toISOString().slice(0, 10) : ''}" /></div>
+                  <div class="input-wrap"><label>Dirección</label><input id="editAdress" value="${user.adress || ''}" /></div>
+                </div>
+                <div class="modal-actions">
+                  <button type="button" class="ghost-btn" data-close-modal="userModal">Cancelar</button>
+                  <button type="submit" class="primary-btn">Guardar</button>
+                </div>
+              </form>
+            `, 'Editar usuario');
+
+            document.getElementById('editUserForm').addEventListener('submit', async (event) => {
+              event.preventDefault();
+              const payload = {
+                name: document.getElementById('editName').value.trim(),
+                lastName: document.getElementById('editLastName').value.trim(),
+                email: document.getElementById('editEmail').value.trim(),
+                phoneNumber: document.getElementById('editPhoneNumber').value.trim(),
+                birthdate: document.getElementById('editBirthdate').value,
+                adress: document.getElementById('editAdress').value.trim()
+              };
+
+              const response = await fetch(`${apiUrl}/${button.dataset.editUser}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                body: JSON.stringify(payload)
+              });
+
+              if (response.ok) {
+                closeModal();
+                await loadUsers();
+              }
+            });
+          });
+        });
+
+        document.querySelectorAll('[data-delete-user]').forEach((button) => {
+          if (button.disabled) return;
+          button.addEventListener('click', async () => {
+            const userId = button.dataset.deleteUser;
+            const result = await fetch(`${apiUrl}/${userId}`, {
+              method: 'DELETE',
+              headers: { Authorization: `Bearer ${token}` }
+            });
+            if (result.ok) await loadUsers();
+          });
+        });
+      }
+
+      async function loadUsers() {
+        const response = await fetch(apiUrl, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+
+        if (response.status === 401) {
+          clearSession();
+          window.location.href = '/signIn';
+          return;
+        }
+
+        if (!response.ok) {
           window.location.href = '/403';
           return;
         }
 
-        async function loadUsers() {
-          const response = await fetch('/api/users', {
-            headers: { Authorization: `Bearer ${token}` }
-          });
+        const users = await response.json();
+        state.users = users;
 
-          if (response.status === 401) {
-            clearSession();
-            window.location.href = '/signIn';
-            return;
-          }
+        const adminCount = users.filter((user) => (user.roles || []).includes('admin')).length;
+        document.getElementById('totalUsers').textContent = users.length;
+        document.getElementById('totalAdmins').textContent = adminCount;
+        document.getElementById('totalUsersRole').textContent = users.length - adminCount;
 
-          if (response.status === 403) {
-            window.location.href = '/403';
-            return;
-          }
-
-          const users = await response.json();
-          const tbody = document.getElementById('usersTableBody');
-          tbody.innerHTML = users.map((user) => `
-            <tr>
-              <td>${user._id}</td>
-              <td>${user.name || ''}</td>
-              <td>${user.lastName || ''}</td>
-              <td>${user.email || ''}</td>
-              <td>${user.phoneNumber || ''}</td>
-              <td>${user.birthdate ? new Date(user.birthdate).toLocaleDateString() : ''}</td>
-              <td>${user.age ?? ''}</td>
-              <td>${user.adress || ''}</td>
-              <td>${user.url_profile || ''}</td>
-              <td>${(user.roles || []).join(', ')}</td>
-              <td>${user.createdAt ? new Date(user.createdAt).toLocaleDateString() : ''}</td>
-              <td><button class="btn-small waves-effect waves-light view-user" data-user-id="${user._id}">Ver</button></td>
-            </tr>
-          `).join('');
-
-          document.querySelectorAll('.view-user').forEach((button) => {
-            button.addEventListener('click', async () => {
-              const userId = button.getAttribute('data-user-id');
-              const res = await fetch(`/api/users/${userId}`, {
-                headers: { Authorization: `Bearer ${token}` }
-              });
-              const user = await res.json();
-              document.getElementById('userDetailContent').innerHTML = `
-                <p><strong>Nombre:</strong> ${user.name}</p>
-                <p><strong>Apellidos:</strong> ${user.lastName}</p>
-                <p><strong>Email:</strong> ${user.email}</p>
-                <p><strong>Teléfono:</strong> ${user.phoneNumber}</p>
-                <p><strong>Fecha de nacimiento:</strong> ${user.birthdate ? new Date(user.birthdate).toLocaleDateString() : ''}</p>
-                <p><strong>Edad:</strong> ${user.age}</p>
-                <p><strong>Dirección:</strong> ${user.adress || ''}</p>
-                <p><strong>URL perfil:</strong> ${user.url_profile || ''}</p>
-                <p><strong>Roles:</strong> ${(user.roles || []).join(', ')}</p>
-                <p><strong>Fecha de registro:</strong> ${user.createdAt ? new Date(user.createdAt).toLocaleString() : ''}</p>
-              `;
-              const modal = document.getElementById('userDetailModal');
-              M.Modal.getInstance(modal)?.destroy();
-              M.Modal.init(modal, { dismissible: true });
-              const instance = M.Modal.getInstance(modal) || M.Modal.init(modal)[0];
-              if (instance) instance.open();
-            });
-          });
-        }
-
-        document.getElementById('logoutButton').addEventListener('click', () => {
-          clearSession();
-          window.location.href = '/signIn';
+        const searchValue = document.getElementById('searchInput').value.trim().toLowerCase();
+        const filteredUsers = users.filter((user) => {
+          const text = `${user.name || ''} ${user.lastName || ''} ${user.email || ''}`.toLowerCase();
+          return text.includes(searchValue);
         });
+        renderTable(filteredUsers);
+      }
 
-        await loadUsers();
-      })();
+      document.getElementById('searchInput').addEventListener('input', () => {
+        const searchValue = document.getElementById('searchInput').value.trim().toLowerCase();
+        const filteredUsers = state.users.filter((user) => {
+          const text = `${user.name || ''} ${user.lastName || ''} ${user.email || ''}`.toLowerCase();
+          return text.includes(searchValue);
+        });
+        renderTable(filteredUsers);
+      });
+
+      document.getElementById('logoutButton').addEventListener('click', () => {
+        clearSession();
+        window.location.href = '/signIn';
+      });
+
+      loadUsers();
     </script>
   </body>
 </html>

@@ -4,56 +4,82 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title><%= title %></title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="/css/styles.css" />
   </head>
-  <body>
-    <nav>
-      <div class="nav-wrapper">
-        <div class="container">
-          <a href="/signIn" class="brand-logo">Auth Lab</a>
+  <body class="auth-shell">
+    <div class="auth-layout">
+      <aside class="auth-brand-panel">
+        <div>
+          <a href="/" class="brand" aria-label="Volver a la landing page">
+            <span class="brand-mark">E</span>
+            <span>Express Auth</span>
+          </a>
+
+          <div class="auth-bullets" style="margin-top: 28px;">
+            <div class="auth-bullet"><span class="auth-check">✓</span> <span>Acceso basado en roles y permisos.</span></div>
+            <div class="auth-bullet"><span class="auth-check">✓</span> <span>Protección con JWT y expiración segura.</span></div>
+            <div class="auth-bullet"><span class="auth-check">✓</span> <span>Despliegue y persistencia en MongoDB Atlas.</span></div>
+          </div>
         </div>
-      </div>
-    </nav>
 
-    <div class="container">
-      <div class="card-panel form-card">
-        <h4 class="center page-title">Iniciar sesión</h4>
-        <form id="signinForm">
-          <div class="input-field">
-            <input id="email" name="email" type="email" required />
-            <label for="email">Correo electrónico</label>
+        <div>
+          <p style="margin: 0; opacity: 0.85;">Laboratorio 08 · Desarrollo de Aplicaciones Web Avanzado</p>
+        </div>
+      </aside>
+
+      <main class="auth-form-panel">
+        <div class="form-card">
+          <div class="form-header">
+            <h1>Iniciar sesión</h1>
+            <p>Accede a tu cuenta para continuar con tu perfil y permisos.</p>
           </div>
 
-          <div class="input-field">
-            <input id="password" name="password" type="password" required />
-            <label for="password">Contraseña</label>
-          </div>
+          <form id="signinForm" class="form-grid" novalidate>
+            <div class="input-wrap">
+              <label for="email">Correo electrónico</label>
+              <input id="email" name="email" type="email" autocomplete="email" required />
+            </div>
 
-          <div class="center">
-            <button class="btn waves-effect waves-light" type="submit">Entrar</button>
-          </div>
+            <div class="input-wrap password">
+              <label for="password">Contraseña</label>
+              <input id="password" name="password" type="password" autocomplete="current-password" required />
+              <button type="button" class="show-password" data-toggle-password="password">Mostrar</button>
+            </div>
 
-          <p class="center">
-            ¿No tienes cuenta?
-            <a href="/signUp">Regístrate aquí</a>
-          </p>
+            <button type="submit" class="primary-btn form-action" id="signinButton">Entrar</button>
+            <div id="message" class="form-message error"></div>
+          </form>
 
-          <div id="message" class="error-message center"></div>
-        </form>
-      </div>
+          <p class="auth-subtle">¿No tienes cuenta? <a href="/signUp">Crear una cuenta</a></p>
+        </div>
+      </main>
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
     <script src="/js/auth.js"></script>
     <script>
       const form = document.getElementById('signinForm');
       const message = document.getElementById('message');
+      const button = document.getElementById('signinButton');
+
+      document.querySelectorAll('[data-toggle-password]').forEach((toggle) => {
+        toggle.addEventListener('click', () => {
+          const input = document.getElementById(toggle.dataset.togglePassword);
+          const visible = input.type === 'text';
+          input.type = visible ? 'password' : 'text';
+          toggle.textContent = visible ? 'Mostrar' : 'Ocultar';
+        });
+      });
 
       form.addEventListener('submit', async (event) => {
         event.preventDefault();
         const email = document.getElementById('email').value.trim();
         const password = document.getElementById('password').value;
+        message.textContent = '';
+        button.disabled = true;
+        button.textContent = 'Ingresando...';
 
         try {
           const response = await fetch('/api/auth/signIn', {
@@ -66,6 +92,7 @@
 
           if (!response.ok) {
             message.textContent = data.message || 'No se pudo iniciar sesión.';
+            message.className = 'form-message error';
             return;
           }
 
@@ -73,8 +100,13 @@
           redirectToDashboardByRole(data.token);
         } catch (error) {
           message.textContent = 'Error de conexión con el servidor.';
+          message.className = 'form-message error';
+        } finally {
+          button.disabled = false;
+          button.textContent = 'Entrar';
         }
       });
     </script>
   </body>
 </html>
+
